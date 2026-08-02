@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Senarai Guru</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.5cm;
+            @bottom-right {
+                content: "Muka Surat " counter(page) " dari " counter(pages);
+                font-size: 8pt;
+                color: #64748b;
+                font-family: Helvetica, Arial, sans-serif;
+            }
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            color: #0f172a;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+
+        /* 🔵 Watermark Latar Belakang (xhtml2pdf Compatible) */
+        .watermark {
+            position: fixed;
+            top: 42%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 48pt;
+            font-weight: bold;
+            color: #e2e8f0; /* Warna Kelabu-Biru Sangat Pudar */
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            z-index: -1000;
+        }
+
+        /* Header Layout Menggunakan Jadual */
+        .header-table {
+            width: 100%;
+            border-bottom: 3px solid #1e40af;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: middle;
+        }
+        .logo-col {
+            width: 80px;
+            text-align: left;
+        }
+        .logo-img {
+            width: 70px;
+            height: auto;
+        }
+        .title-col {
+            text-align: center;
+        }
+        .school-name {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .school-address {
+            font-size: 8pt;
+            color: #475569;
+            margin: 2px 0 0 0;
+        }
+
+        /* Tajuk Laporan */
+        .report-header {
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .report-title {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin: 0;
+        }
+        .report-date {
+            font-size: 9pt;
+            color: #2563eb;
+            margin: 3px 0 0 0;
+        }
+
+        /* Jadual Data Guru */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 10px;
+            font-size: 9pt;
+        }
+        .data-table th {
+            background-color: #1e40af;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: left;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+        }
+        .data-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        /* Bahagian Tandatangan / Pengesahan */
+        .signature-table {
+            width: 100%;
+            margin-top: 40px;
+            border: none;
+        }
+        .signature-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+            font-size: 9pt;
+        }
+        .sign-box {
+            width: 220px;
+        }
+        .sign-line {
+            border-bottom: 1px solid #64748b;
+            margin-top: 50px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 🔵 Teks Watermark Latar Belakang -->
+    <div class="watermark">DOKUMEN RASMI</div>
+
+    <!-- Pengepala Rasmi (+ Logo Sekolah) -->
+    <table class="header-table">
+        <tr>
+            <td class="logo-col">
+                <img src="logo.png" class="logo-img" alt="Logo Sekolah" />
+            </td>
+            <td class="title-col">
+                <p class="school-name">{{ nama_sekolah }}</p>
+                <p class="school-address">Kementerian Pendidikan Malaysia | Kod Sekolah: BEA1234</p>
+                <p class="school-address">Jalan Edu Park, 43300 Seri Kembangan, Selangor</p>
+            </td>
+            <td class="logo-col" style="width: 80px;"></td>
+        </tr>
+    </table>
+
+    <!-- Info Laporan -->
+    <div class="report-header">
+        <p class="report-title">{{ tajuk_laporan }}</p>
+        <p class="report-date">Tarikh Cetakan: {{ tarikh }}</p>
+    </div>
+
+    <!-- Jadual Senarai Guru -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 8%; text-align: center;">No.</th>
+                <th style="width: 42%;">Nama Guru</th>
+                <th style="width: 32%;">Subjek Utama</th>
+                <th style="width: 18%; text-align: center;">Gred</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if senarai_guru and senarai_guru|length > 0 %}
+                {% for guru in senarai_guru %}
+                <tr>
+                    <td style="text-align: center;">{{ loop.index }}</td>
+                    <td><b>{{ guru.nama }}</b></td>
+                    <td>{{ guru.subjek }}</td>
+                    <td style="text-align: center;">{{ guru.gred }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #64748b; padding: 15px;">
+                        Tiada rekod guru dijumpai mengikut tapisan ini.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <!-- Bahagian Pengesahan / Tandatangan -->
+    <table class="signature-table">
+        <tr>
+            <td style="width: 60%;"></td>
+            <td>
+                <div class="sign-box">
+                    <p>Disediakan / Disahkan Oleh:</p>
+                    <div class="sign-line"></div>
+                    <p><b>( PENGETUA / GURU BESAR )</b><br>{{ nama_sekolah }}</p>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

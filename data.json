@@ -1,0 +1,17 @@
+{
+  "tajuk_laporan": "LAPORAN SENARAI KESELURUHAN GURU",
+  "tarikh": "1 Ogos 2026",
+  "nama_sekolah": "SMK Sri Indah",
+  "senarai_guru": [
+    {
+      "nama": "Guru Baru",
+      "subjek": "Tiada Subjek",
+      "gred": "Guru KAFA"
+    },
+    {
+      "nama": "Testing Haikal",
+      "subjek": "Tiada Subjek",
+      "gred": "Guru KAFA"
+    }
+  ]
+}
