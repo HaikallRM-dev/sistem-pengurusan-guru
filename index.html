@@ -1,13 +1,942 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>sistem-pengurusan-guru</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Pengurusan Guru</title>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background-color: #f1f5f9; color: #1e293b; display: flex; flex-direction: column; min-height: 100vh; }
+    
+    header { 
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); 
+      color: white; 
+      padding: 14px 24px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); 
+      position: relative;
+      z-index: 100;
+    }
+    
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .toggle-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 18px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+    header h1 { margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; }
+    header h1 .icon { margin-right: 10px; font-size: 22px; background: rgba(255,255,255,0.15); padding: 5px; border-radius: 8px; }
+    
+    .header-right { display: flex; align-items: center; gap: 16px; position: relative; }
+    .user-profile { font-size: 13px; background: rgba(255, 255, 255, 0.12); color: #f8fafc; padding: 8px 16px; border-radius: 30px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.2); }
+
+    .wrapper { display: flex; flex: 1; position: relative; overflow-x: hidden; }
+    
+    .sidebar { 
+      width: 260px; 
+      background-color: #ffffff; 
+      border-right: 1px solid #e2e8f0; 
+      padding: 28px 16px; 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+    .sidebar.collapsed { width: 0; padding-left: 0; padding-right: 0; border-right: none; opacity: 0; pointer-events: none; }
+
+    .sidebar-menu { list-style: none; padding: 0; margin: 0; }
+    .sidebar-menu li { margin-bottom: 6px; }
+    .sidebar-menu a { 
+      display: flex; align-items: center; padding: 12px 16px; color: #475569; text-decoration: none; 
+      border-radius: 10px; font-weight: 600; font-size: 14px; transition: all 0.2s ease; 
+    }
+    .sidebar-menu a:hover { background-color: #f1f5f9; color: #1e3a8a; }
+    .sidebar-menu a.active { background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%); color: #1d4ed8; border-left: 4px solid #2563eb; }
+    .sidebar-menu a .icon { margin-right: 14px; font-size: 20px; }
+
+    .main-content { flex: 1; padding: 36px 40px; background-color: #f8fafc; }
+    
+    .callout-card { 
+      background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%); 
+      border-left: 6px solid #2563eb; padding: 24px 30px; border-radius: 14px; margin-bottom: 24px; 
+      box-shadow: 0 4px 20px -2px rgba(37, 99, 235, 0.08); border: 1px solid #e0f2fe;
+    }
+    .callout-card h2 { margin: 0 0 8px 0; color: #1e293b; font-size: 22px; font-weight: 800; }
+    .callout-card p { margin: 0; color: #64748b; font-size: 14px; line-height: 1.6; }
+
+    .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+    
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 36px; }
+    .card { 
+      background: white; padding: 22px; border-radius: 16px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03); 
+      border: 1px solid #e2e8f0; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(37, 99, 235, 0.1); border-color: #bfdbfe; }
+    .card-icon-wrapper { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 14px; }
+    .bg-erpt { background-color: #fff7ed; color: #ea580c; }
+    .bg-erph { background-color: #f0fdf4; color: #16a34a; }
+    .bg-murid { background-color: #faf5ff; color: #9333ea; }
+    .bg-jadual { background-color: #f0f9ff; color: #0284c7; }
+    .card h3 { margin: 0 0 6px 0; font-size: 16px; color: #0f172a; font-weight: 700; }
+    .card p { margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.5; margin-bottom: 16px; }
+    
+    .status-tag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 700; width: fit-content; }
+    .status-active { background-color: #dcfce7; color: #15803d; }
+    .status-pending { background-color: #fef3c7; color: #b45309; }
+
+    /* Sub-Navigation Tabs */
+    .sub-tabs { display: flex; gap: 12px; margin-bottom: 24px; border-bottom: 1px solid #cbd5e1; padding-bottom: 16px; }
+    .sub-tab-btn { 
+      padding: 10px 20px; border-radius: 8px; border: 1px solid #cbd5e1; background: white; 
+      font-weight: 600; font-size: 13.5px; cursor: pointer; color: #475569; transition: 0.2s; 
+    }
+    .sub-tab-btn.active-sub { background: #2563eb; color: white; border-color: #2563eb; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2); }
+
+    /* Borang & Filter Box */
+    .form-box { background: white; padding: 20px 24px; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 20px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .form-box input, .form-box select { padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; flex: 1; min-width: 180px; }
+    
+    .filter-box { background: #f8fafc; padding: 16px 24px; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 24px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .filter-box input, .filter-box select { padding: 9px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13.5px; flex: 1; min-width: 180px; background: white; }
+
+    .action-btn { 
+      padding: 10px 20px; border: none; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+      color: white; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; 
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2); transition: 0.2s;
+    }
+    .action-btn:hover { background: #1e40af; }
+
+    /* ADVANCED TABBED MODAL STYLES */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);
+      display: flex; justify-content: center; align-items: center; z-index: 1000;
+    }
+    .modal-box-large {
+      background: white; width: 920px; max-width: 95vw; height: 620px; max-height: 90vh;
+      border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      display: flex; flex-direction: column; overflow: hidden;
+      animation: modalPop 0.25s ease-out;
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-top-bar {
+      background: #f8fafc; padding: 16px 24px; border-bottom: 1px solid #e2e8f0;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-top-bar h3 { margin: 0; font-size: 17px; color: #0f172a; font-weight: 700; }
+    .close-modal { background: none; border: none; font-size: 20px; cursor: pointer; color: #64748b; font-weight: bold; }
+
+    .modal-body-wrapper { display: flex; flex: 1; overflow: hidden; }
+    
+    .modal-sidebar-menu {
+      width: 240px; background: #f8fafc; border-right: 1px solid #e2e8f0;
+      padding: 20px 12px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto;
+    }
+    .modal-tab-btn {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border-radius: 10px; border: none; background: transparent; color: #475569;
+      font-size: 13.5px; font-weight: 600; cursor: pointer; text-align: left; transition: 0.2s;
+    }
+    .modal-tab-btn:hover { background: #e2e8f0; color: #0f172a; }
+    .modal-tab-btn.active-modal-tab { background: #eff6ff; color: #1d4ed8; border-left: 4px solid #2563eb; }
+
+    .modal-content-area {
+      flex: 1; padding: 28px; overflow-y: auto; background: #ffffff;
+    }
+
+    .form-section-title {
+      display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 800; color: #1e3a8a;
+      margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #eff6ff;
+    }
+    .form-section-title span.badge {
+      width: 28px; height: 28px; background: #2563eb; color: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+    }
+
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-group label { font-size: 12.5px; font-weight: 700; color: #475569; }
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; width: 100%; background: #fff; color: #1e293b;
+    }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+
+    .modal-footer {
+      background: #f8fafc; padding: 16px 28px; border-top: 1px solid #e2e8f0;
+      display: flex; justify-content: flex-end; gap: 12px;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <button class="toggle-btn" onclick="toggleSidebar()" title="Buka/Tutup Menu">☰</button>
+      <h1><span class="icon">🏫</span> Portal Pengurusan Guru</h1>
+    </div>
+    <div class="header-right">
+      <div class="user-profile">👤 Selamat Datang, Cikgu</div>
+    </div>
+  </header>
+
+  <div class="wrapper">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <ul class="sidebar-menu">
+        <li><a href="#" id="nav-home" class="active" onclick="switchView('home')"><span class="icon">🏠</span> Laman Utama</a></li>
+        <li><a href="#" id="nav-erpt" onclick="switchView('erpt')"><span class="icon">📂</span> Modul eRPT</a></li>
+        <li><a href="#" id="nav-erph" onclick="switchView('erph')"><span class="icon">📝</span> Modul eRPH</a></li>
+        <li><a href="#" id="nav-murid" onclick="switchView('murid')"><span class="icon">👨‍🎓</span> Pengurusan Murid</a></li>
+      </ul>
+    </div>
+
+    <!-- KANDUNGAN UTAMA -->
+    <div class="main-content">
+      
+      <!-- VIEW: LAMAN UTAMA -->
+      <div id="view-home">
+        <div class="callout-card">
+          <h2>Selamat Datang ke Sistem Pengurusan Guru</h2>
+          <p>Pusat kawalan sehenti untuk Rancangan Pengajaran Tahunan (eRPT), Laporan Harian (eRPH), Rekod Murid, dan pengurusan kelas.</p>
+        </div>
+
+        <div class="section-title">📌 Modul Utama</div>
+        <div class="grid-container">
+          <div class="card" onclick="switchView('erpt')">
+            <div>
+              <div class="card-icon-wrapper bg-erpt">📂</div>
+              <h3>Sub-folder eRPT</h3>
+              <p>Muat naik dan semak dokumen Rancangan Pengajaran Tahunan (PDF).</p>
+            </div>
+            <span class="status-tag status-active">● Aktif</span>
+          </div>
+          
+          <div class="card" onclick="switchView('erph')">
+            <div>
+              <div class="card-icon-wrapper bg-erph">📝</div>
+              <h3>Sub-folder eRPH</h3>
+              <p>Jana dan cetak Laporan Pengajaran Harian mengikut minggu secara automatik.</p>
+            </div>
+            <span class="status-tag status-active">● Aktif</span>
+          </div>
+
+          <div class="card" onclick="switchView('murid')">
+            <div>
+              <div class="card-icon-wrapper bg-murid">👨‍🎓</div>
+              <h3>Pengurusan Murid</h3>
+              <p>Pengurusan senarai pelajar, kemaskini maklumat dan rekod kehadiran.</p>
+            </div>
+            <span class="status-tag status-active">● Aktif</span>
+          </div>
+
+          <div class="card" onclick="alert('Modul ini akan diaktifkan dalam fasa seterusnya.')">
+            <div>
+              <div class="card-icon-wrapper bg-jadual">📅</div>
+              <h3>Jadual Waktu</h3>
+              <p>Semakan jadual waktu mengajar dan guru ganti harian.</p>
+            </div>
+            <span class="status-tag status-pending">● Fasa 2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW: eRPT -->
+      <div id="view-erpt" class="hidden">
+        <div class="callout-card">
+          <h2>📂 Sub-folder eRPT</h2>
+          <p>Muat naik fail PDF Rancangan Pengajaran Tahunan anda di sini.</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <input type="file" id="pdfUpload" accept="application/pdf" class="border p-2 rounded mr-3">
+          <button class="action-btn" onclick="alert('Fail berjaya dipilih!')">⬆️ Muat Naik</button>
+        </div>
+      </div>
+
+      <!-- VIEW: eRPH -->
+      <div id="view-erph" class="hidden">
+        <div class="callout-card">
+          <h2>📝 Sub-folder eRPH</h2>
+          <p>Pilih minggu pengajaran untuk menjana laporan eRPH.</p>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+          <select id="mingguSelect" style="padding: 10px; width: 250px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <option value="">-- Pilih Minggu --</option>
+            <option value="Minggu 1">Minggu 1</option>
+            <option value="Minggu 2">Minggu 2</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- VIEW: PENGURUSAN MURID -->
+      <div id="view-murid" class="hidden">
+        
+        <!-- Sub-Tabs -->
+        <div class="sub-tabs">
+          <button class="sub-tab-btn active-sub" id="tab-senarai" onclick="switchSubTab('senarai')">👥 Senarai & Kemaskini Pelajar</button>
+          <button class="sub-tab-btn" id="tab-rekod" onclick="switchSubTab('rekod')">📊 Rekod & Sejarah Kehadiran</button>
+        </div>
+
+        <!-- SUB-VIEW 1: SENARAI & KEMASKINI (NEW DESIGN) -->
+        <div id="subview-senarai">
+          
+          <!-- Borang Tambah Pantas -->
+          <div class="form-box">
+            <input type="text" id="namaInput" placeholder="Nama Penuh Pelajar...">
+            <select id="tahunInput">
+              <option value="DARJAH 1">Darjah 1</option>
+              <option value="DARJAH 2">Darjah 2</option>
+              <option value="DARJAH 3">Darjah 3</option>
+              <option value="DARJAH 4">Darjah 4</option>
+              <option value="DARJAH 5" selected>Darjah 5</option>
+              <option value="DARJAH 6">Darjah 6</option>
+            </select>
+            <input type="text" id="kelasInput" placeholder="Nama Kelas (cth: ALI)">
+            <button class="action-btn" onclick="tambahPelajarBaru()">➕ Tambah Pelajar</button>
+          </div>
+
+          <!-- Kotak Filter -->
+          <div class="filter-box">
+            <input type="text" id="cariNama" placeholder="🔍 Cari nama murid..." onkeyup="paparSenaraiPelajar()">
+            <select id="filterTahun" onchange="paparSenaraiPelajar()">
+              <option value="">Semua Darjah</option>
+              <option value="DARJAH 1">Darjah 1</option>
+              <option value="DARJAH 2">Darjah 2</option>
+              <option value="DARJAH 3">Darjah 3</option>
+              <option value="DARJAH 4">Darjah 4</option>
+              <option value="DARJAH 5">Darjah 5</option>
+              <option value="DARJAH 6">Darjah 6</option>
+            </select>
+            <input type="text" id="filterKelas" placeholder="🔍 Tapis nama kelas..." onkeyup="paparSenaraiPelajar()">
+          </div>
+
+          <!-- REKA BENTUK JADUAL BARU BERDASARKAN GAMBAR -->
+          <div class="mb-3 text-[#64748b] font-semibold text-sm flex items-center">
+             Jumlah Rekod: <span id="jumlahRekod" class="ml-1">0</span>
+          </div>
+          
+          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-[#F8FAFC] text-[#64748b] text-[11px] uppercase font-bold tracking-wider border-b border-gray-200">
+                  <th class="py-4 px-4 whitespace-nowrap">NAMA &uarr;</th>
+                  <th class="py-4 px-4 whitespace-nowrap">NO. IC</th>
+                  <th class="py-4 px-4 whitespace-nowrap">TAHUN AKADEMIK</th>
+                  <th class="py-4 px-4 whitespace-nowrap">STATUS MURID</th>
+                  <th class="py-4 px-4 whitespace-nowrap">DARJAH</th>
+                  <th class="py-4 px-4 whitespace-nowrap">KELAS</th>
+                  <th class="py-4 px-4 text-center whitespace-nowrap">JANTINA</th>
+                  <th class="py-4 px-4 text-center whitespace-nowrap">ANAK SELANGOR</th>
+                  <th class="py-4 px-4 text-center whitespace-nowrap">TINDAKAN</th>
+                </tr>
+              </thead>
+              <tbody id="senaraiPelajarBody" class="text-xs">
+                <!-- Data dijana automatik dari JS -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- SUB-VIEW 2: REKOD & SEJARAH KEHADIRAN (TIADA PERUBAHAN) -->
+        <div id="subview-rekod" class="hidden">
+          <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+              <h3 style="margin:0; font-size:15px; color:#1e293b; font-weight:700;">📈 Log Sejarah Status Kehadiran</h3>
+              <button class="action-btn" style="background: #0f172a; padding: 6px 14px; font-size: 12px;" onclick="muatSemulaLog()">🔄 Muat Semula Log</button>
+            </div>
+            <table class="w-full text-left text-sm border-collapse">
+              <thead class="bg-gray-50 border-b">
+                <tr>
+                  <th class="p-3 text-gray-500 font-bold uppercase text-[11px]">Bil</th>
+                  <th class="p-3 text-gray-500 font-bold uppercase text-[11px]">Tarikh & Masa</th>
+                  <th class="p-3 text-gray-500 font-bold uppercase text-[11px]">Nama Murid</th>
+                  <th class="p-3 text-gray-500 font-bold uppercase text-[11px]">Kelas</th>
+                  <th class="p-3 text-gray-500 font-bold uppercase text-[11px]">Status Kehadiran</th>
+                </tr>
+              </thead>
+              <tbody id="senaraiRekodBody">
+                <!-- Log kehadiran dijana automatik -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ADVANCED TABBED EDIT MODAL -->
+  <div id="editModalOverlay" class="modal-overlay hidden">
+    <div class="modal-box-large">
+      <div class="modal-top-bar">
+        <h3>✏️ Kemaskini Profil Penuh Pelajar</h3>
+        <button class="close-modal" onclick="tutupModalEdit()">✕</button>
+      </div>
+
+      <div class="modal-body-wrapper">
+        <!-- Modal Sidebar Menu -->
+        <div class="modal-sidebar-menu">
+          <button class="modal-tab-btn active-modal-tab" onclick="switchModalTab('maklumat', this)">ℹ️ Maklumat Asas</button>
+          <button class="modal-tab-btn" onclick="switchModalTab('sekolah', this)">🏫 Rekod Sekolah</button>
+          <button class="modal-tab-btn" onclick="switchModalTab('kesihatan', this)">🩺 Kesihatan</button>
+          <button class="modal-tab-btn" onclick="switchModalTab('bantuan', this)">🤝 Bantuan</button>
+          <button class="modal-tab-btn" onclick="switchModalTab('penjaga', this)">👨‍👩‍👧‍👦 Penjaga</button>
+          <button class="modal-tab-btn" onclick="switchModalTab('disiplin', this)">⚠️ Rekod Disiplin</button>
+          <button class="modal-tab-btn" onclick="switchModalTab('catatan', this)">📝 Catatan</button>
+        </div>
+
+        <!-- Modal Content Area -->
+        <div class="modal-content-area">
+          <input type="hidden" id="modalEditIndex">
+
+          <!-- TAB 1: MAKLUMAT ASAS -->
+          <div id="modal-tab-maklumat" class="modal-pane">
+            <div class="form-section-title"><span class="badge">1</span> MAKLUMAT ASAS</div>
+            
+            <div class="form-group">
+              <label>Nama Penuh</label>
+              <input type="text" id="modalNama" placeholder="Nama penuh pelajar...">
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>No. IC / Pasport</label>
+                <input type="text" id="modalIc" placeholder="cth: 120304141234">
+              </div>
+              <div class="form-group">
+                <label>Jantina</label>
+                <select id="modalJantina">
+                  <option value="Lelaki">Lelaki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Tarikh Lahir</label>
+                <input type="text" id="modalTarikhLahir" placeholder="cth: 18/07/2012">
+              </div>
+              <div class="form-group">
+                <label>Tempat Lahir</label>
+                <input type="text" id="modalTempatLahir" placeholder="cth: Hospital Kuala Lumpur">
+              </div>
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>Anak Selangor</label>
+                <select id="modalAnakSelangor">
+                  <option value="true">Ya</option>
+                  <option value="false">Tidak</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Bangsa</label>
+                <select id="modalBangsa">
+                  <option value="Melayu">Melayu</option>
+                  <option value="Cina">Cina</option>
+                  <option value="India">India</option>
+                  <option value="Lain-lain">Lain-lain</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: REKOD SEKOLAH -->
+          <div id="modal-tab-sekolah" class="modal-pane hidden">
+            <div class="form-section-title"><span class="badge">2</span> REKOD SEKOLAH</div>
+            
+            <div class="border border-gray-200 rounded-lg p-5 mb-6 bg-white shadow-sm">
+                <div class="flex items-center text-blue-600 font-bold text-sm mb-5">
+                    <i class="fa-solid fa-graduation-cap mr-2 text-base"></i> SEKOLAH SEMASA
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-y-5 gap-x-6 text-sm">
+                    <div>
+                        <span class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Sekolah</span>
+                        <input type="text" id="modalSekolahSemasa" class="border border-gray-300 rounded px-3 py-1.5 w-full text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Tahun Akademik</span>
+                        <input type="text" id="modalTahunAkademik" class="border border-gray-300 rounded px-3 py-1.5 w-full text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Darjah</span>
+                        <input type="text" id="modalDarjah" class="border border-gray-300 rounded px-3 py-1.5 w-full text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Kelas</span>
+                        <input type="text" id="modalKelas" class="border border-gray-300 rounded px-3 py-1.5 w-full text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-none">
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Status Murid</span>
+                        <select id="modalStatusMurid" class="border border-gray-300 rounded px-3 py-1.5 w-full text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-none">
+                            <option value="Aktif">Aktif</option>
+                            <option value="Tidak Aktif">Tidak Aktif</option>
+                            <option value="Pindah">Pindah</option>
+                        </select>
+                    </div>
+                    <div>
+                        <span class="block text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Tarikh Mula</span>
+                        <input type="text" id="modalTarikhMula" class="border border-gray-300 rounded px-3 py-1.5 w-full text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white focus:outline-none">
+                    </div>
+                </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: KESIHATAN -->
+          <div id="modal-tab-kesihatan" class="modal-pane hidden">
+            <div class="form-section-title"><span class="badge">3</span> MAKLUMAT KESIHATAN</div>
+            
+            <div class="form-group">
+              <label>Status Kesihatan / Penyakit Kronik</label>
+              <input type="text" id="modalKesihatan" placeholder="cth: Sihat / Asma / Alahan">
+            </div>
+
+            <div class="form-group">
+              <label>Jenis Alahan (Makanan / Ubat)</label>
+              <input type="text" id="modalAlergi" placeholder="cth: Alahan kacang tanah">
+            </div>
+          </div>
+
+          <!-- TAB 4: BANTUAN -->
+          <div id="modal-tab-bantuan" class="modal-pane hidden">
+            <div class="form-section-title"><span class="badge">4</span> REKOD BANTUAN</div>
+            
+            <div class="form-group">
+              <label>Bantuan Diterima (RMT, KWAPM, BKP, dll.)</label>
+              <textarea id="modalBantuan" placeholder="Senaraikan bantuan persekolahan yang diterima..."></textarea>
+            </div>
+          </div>
+
+          <!-- TAB 5: PENJAGA -->
+          <div id="modal-tab-penjaga" class="modal-pane hidden">
+            <div class="form-section-title"><span class="badge">5</span> MAKLUMAT PENJAGA</div>
+            
+            <div class="form-group">
+              <label>Nama Ibu Bapa / Penjaga</label>
+              <input type="text" id="modalIbuBapa" placeholder="Nama penuh penjaga...">
+            </div>
+
+            <div class="form-grid-2">
+              <div class="form-group">
+                <label>No. Telefon Penjaga</label>
+                <input type="text" id="modalTelefon" placeholder="cth: 012-3456789">
+              </div>
+              <div class="form-group">
+                <label>Hubungan</label>
+                <input type="text" id="modalHubungan" placeholder="cth: Bapa / Ibu / Penjaga Sah">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Alamat Rumah</label>
+              <textarea id="modalAlamat" placeholder="Alamat penuh kediaman..."></textarea>
+            </div>
+          </div>
+
+          <!-- TAB 6: REKOD DISIPLIN -->
+          <div id="modal-tab-disiplin" class="modal-pane hidden">
+            <div class="form-section-title"><span class="badge">6</span> REKOD DISIPLIN</div>
+            
+            <div class="form-group">
+              <label>Catatan Salah Laku / Merit / Demerit</label>
+              <textarea id="modalDisiplin" placeholder="Tiada rekod kesalahan..."></textarea>
+            </div>
+          </div>
+
+          <!-- TAB 7: CATATAN -->
+          <div id="modal-tab-catatan" class="modal-pane hidden">
+            <div class="form-section-title"><span class="badge">7</span> CATATAN KHAS GURU</div>
+            
+            <div class="form-group">
+              <label>Nota / Pemerhatian Prestasi Pelajar</label>
+              <textarea id="modalCatatan" placeholder="Catatan prestasi akademik atau kokurikulum..."></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="action-btn" style="background: #64748b;" onclick="tutupModalEdit()">Batal</button>
+        <button class="action-btn" onclick="simpanModalEdit()">💾 Simpan Perubahan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data asas pelajar telah dikemas kini dengan kolum 'anakSelangor'
+    let dataPelajar = JSON.parse(localStorage.getItem('senarai_murid')) || [
+      { 
+        nama: "AIREEN ANAURAIZZATI BINTI ASRUL IZZAD", kelas: "ALI", 
+        noIc: "190720101142", jantina: "Perempuan", tarikhLahir: "20/07/2019", tempatLahir: "Selangor", warganegara: "Malaysia", bangsa: "Melayu",
+        sekolahSemasa: "SRA KG CHERAS BARU", tahunAkademik: "2026", darjah: "DARJAH 1", statusMurid: "Aktif", tarikhMula: "28/06/2026",
+        kesihatan: "Sihat", alergi: "Tiada", bantuan: "Tiada",
+        ibuBapa: "Asrul Izzad", telefon: "012-3456789", hubungan: "Bapa", alamat: "Selangor",
+        disiplin: "Baik", catatan: "-", status: "Hadir", anakSelangor: true
+      },
+      { 
+        nama: "NAURA IRDINA BINTI ABDUL BAREE", kelas: "ALI", 
+        noIc: "180112100614", jantina: "Perempuan", tarikhLahir: "12/01/2018", tempatLahir: "Selangor", warganegara: "Malaysia", bangsa: "Melayu",
+        sekolahSemasa: "SRA KG CHERAS BARU", tahunAkademik: "2026", darjah: "DARJAH 2", statusMurid: "Aktif", tarikhMula: "28/06/2026",
+        kesihatan: "Sihat", alergi: "Tiada", bantuan: "Tiada",
+        ibuBapa: "Abdul Baree", telefon: "019-8765432", hubungan: "Bapa", alamat: "Selangor",
+        disiplin: "Baik", catatan: "-", status: "Hadir", anakSelangor: true
+      },
+      { 
+        nama: "NAURAH AMANI BINTI MUHAMMAD ARSYAD", kelas: "ABU BAKAR", 
+        noIc: "160625010210", jantina: "Perempuan", tarikhLahir: "25/06/2016", tempatLahir: "Johor", warganegara: "Malaysia", bangsa: "Melayu",
+        sekolahSemasa: "SRA KG CHERAS BARU", tahunAkademik: "2026", darjah: "DARJAH 4", statusMurid: "Aktif", tarikhMula: "28/06/2026",
+        kesihatan: "Sihat", alergi: "Tiada", bantuan: "Tiada",
+        ibuBapa: "Muhammad Arsyad", telefon: "013-1234567", hubungan: "Bapa", alamat: "Kuala Lumpur",
+        disiplin: "Baik", catatan: "-", status: "Hadir", anakSelangor: false
+      }
+    ];
+
+    let dataLogKehadiran = JSON.parse(localStorage.getItem('log_kehadiran')) || [];
+
+    function simpanKeLocalStorage() {
+      localStorage.setItem('senarai_murid', JSON.stringify(dataPelajar));
+      localStorage.setItem('log_kehadiran', JSON.stringify(dataLogKehadiran));
+    }
+
+    // Fungsi utiliti untuk mendapatkan 2 huruf awalan nama
+    function getInitials(name) {
+      if (!name) return 'TI';
+      let parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+
+    // Fungsi utiliti untuk menjana warna avatar pastel secara rawak (berdasarkan nama)
+    function getAvatarColor(name) {
+      const colors = [
+        'bg-purple-200 text-purple-800',
+        'bg-blue-200 text-blue-800',
+        'bg-green-200 text-green-800',
+        'bg-pink-200 text-pink-800',
+        'bg-yellow-200 text-yellow-800',
+        'bg-indigo-200 text-indigo-800',
+        'bg-red-200 text-red-800'
+      ];
+      let sum = 0;
+      if(name) {
+        for(let i=0; i<name.length; i++) sum += name.charCodeAt(i);
+      }
+      return colors[sum % colors.length];
+    }
+
+    function paparSenaraiPelajar() {
+      const tbody = document.getElementById('senaraiPelajarBody');
+      const keywordNama = document.getElementById('cariNama').value.toLowerCase();
+      const selectedDarjah = document.getElementById('filterTahun').value;
+      const keywordKelas = document.getElementById('filterKelas').value.toLowerCase();
+
+      tbody.innerHTML = '';
+      
+      const filteredData = [];
+      dataPelajar.forEach((pelajar, index) => {
+        const matchNama = pelajar.nama.toLowerCase().includes(keywordNama);
+        const matchDarjah = selectedDarjah === "" || (pelajar.darjah && pelajar.darjah.toUpperCase() === selectedDarjah.toUpperCase());
+        const matchKelas = pelajar.kelas.toLowerCase().includes(keywordKelas);
+        
+        if (matchNama && matchDarjah && matchKelas) {
+          filteredData.push({ ...pelajar, originalIndex: index });
+        }
+      });
+
+      document.getElementById('jumlahRekod').innerText = filteredData.length;
+
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: #64748b; padding: 30px;">Tiada rekod pelajar yang sepadan.</td></tr>`;
+        return;
+      }
+
+      filteredData.forEach((pelajar) => {
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-gray-100 hover:bg-gray-50 bg-white transition-colors";
+        
+        const initials = getInitials(pelajar.nama);
+        const avatarClass = getAvatarColor(pelajar.nama);
+
+        // Lencana Status
+        let statusMuridHtml = pelajar.statusMurid === 'Aktif'
+          ? `<span class="inline-flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-md text-[11px] font-bold border border-green-200"><i class="fa-solid fa-circle-check"></i> Aktif</span>`
+          : `<span class="inline-flex items-center gap-1 bg-red-50 text-red-600 px-2.5 py-1 rounded-md text-[11px] font-bold border border-red-200"><i class="fa-solid fa-circle-xmark"></i> ${pelajar.statusMurid}</span>`;
+
+        // Lencana Jantina
+        let jantinaHtml = pelajar.jantina === 'Perempuan'
+          ? `<span class="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-[11px] font-bold">Perempuan</span>`
+          : `<span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[11px] font-bold">Lelaki</span>`;
+
+        // Ikon Anak Selangor
+        let selangorHtml = pelajar.anakSelangor !== false
+          ? `<i class="fa-solid fa-circle-check text-green-500 text-lg"></i>`
+          : `<i class="fa-solid fa-circle-xmark text-red-500 text-lg"></i>`;
+
+        tr.innerHTML = `
+          <td class="py-4 px-4 whitespace-nowrap">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-extrabold ${avatarClass}">
+                ${initials}
+              </div>
+              <span class="font-bold text-gray-800 text-xs">${(pelajar.nama || '').toUpperCase()}</span>
+            </div>
+          </td>
+          <td class="py-4 px-4 text-gray-600 font-medium">${pelajar.noIc || '-'}</td>
+          <td class="py-4 px-4 font-bold text-gray-800">${pelajar.tahunAkademik || '2026'}</td>
+          <td class="py-4 px-4">${statusMuridHtml}</td>
+          <td class="py-4 px-4 text-gray-600 font-medium">${pelajar.darjah || '-'}</td>
+          <td class="py-4 px-4 text-gray-600 font-medium">${pelajar.kelas || '-'}</td>
+          <td class="py-4 px-4 text-center">${jantinaHtml}</td>
+          <td class="py-4 px-4 text-center">${selangorHtml}</td>
+          <td class="py-4 px-4 text-center">
+            <div class="flex items-center justify-center gap-4 text-[15px]">
+              <button class="text-blue-500 hover:text-blue-700 transition-colors" title="Lihat"><i class="fa-solid fa-eye"></i></button>
+              <button class="text-orange-400 hover:text-orange-600 transition-colors" title="Edit" onclick="bukaModalEdit(${pelajar.originalIndex})"><i class="fa-solid fa-pencil"></i></button>
+              <button class="text-red-500 hover:text-red-700 transition-colors" title="Padam" onclick="padamPelajar(${pelajar.originalIndex})"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function paparRekodKehadiran() {
+      const tbody = document.getElementById('senaraiRekodBody');
+      tbody.innerHTML = '';
+
+      if (dataLogKehadiran.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">Tiada log rekod kehadiran direkodkan lagi.</td></tr>`;
+        return;
+      }
+
+      [...dataLogKehadiran].reverse().forEach((log, index) => {
+        const tr = document.createElement('tr');
+        tr.className = "border-b hover:bg-gray-50";
+        let statusColor = "#15803d";
+        if (log.status === "Tidak Hadir") statusColor = "#b91c1c";
+        else if (log.status === "Lewat") statusColor = "#b45309";
+
+        tr.innerHTML = `
+          <td class="p-3">${index + 1}</td>
+          <td class="p-3 text-gray-600">${log.tarikh}</td>
+          <td class="p-3 font-semibold text-gray-800">${log.nama}</td>
+          <td class="p-3 text-gray-600">${log.kelas}</td>
+          <td class="p-3"><span class="status-tag" style="background-color: ${statusColor}15; color: ${statusColor};">${log.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function tambahPelajarBaru() {
+      const namaField = document.getElementById('namaInput');
+      const tahunField = document.getElementById('tahunInput');
+      const kelasField = document.getElementById('kelasInput');
+      
+      const nama = namaField.value.trim().toUpperCase();
+      const darjah = tahunField.value;
+      const kelas = kelasField.value.trim().toUpperCase();
+
+      if (!nama || !kelas) {
+        alert('Sila lengkapkan Nama Pelajar dan Nama Kelas.');
+        return;
+      }
+
+      dataPelajar.push({ 
+        nama: nama, darjah: darjah, kelas: kelas, 
+        noIc: "", jantina: "Lelaki", tarikhLahir: "", tempatLahir: "", warganegara: "Malaysia", bangsa: "Melayu",
+        sekolahSemasa: "SRA KG CHERAS BARU", tahunAkademik: "2026", statusMurid: "Aktif", tarikhMula: "28/06/2026",
+        kesihatan: "", alergi: "", bantuan: "", ibuBapa: "", telefon: "", hubungan: "", alamat: "", disiplin: "", catatan: "",
+        status: "Hadir", anakSelangor: true 
+      });
+
+      simpanKeLocalStorage();
+      paparSenaraiPelajar();
+      alert('Pelajar berjaya ditambah ke dalam sistem!');
+
+      namaField.value = '';
+      kelasField.value = '';
+    }
+
+    function bukaModalEdit(index) {
+      const p = dataPelajar[index];
+      
+      document.getElementById('modalEditIndex').value = index;
+      document.getElementById('modalNama').value = p.nama || '';
+      document.getElementById('modalIc').value = p.noIc || '';
+      document.getElementById('modalJantina').value = p.jantina || 'Lelaki';
+      document.getElementById('modalTarikhLahir').value = p.tarikhLahir || '';
+      document.getElementById('modalTempatLahir').value = p.tempatLahir || '';
+      
+      // Select Box Anak Selangor
+      if(p.anakSelangor !== undefined) {
+         document.getElementById('modalAnakSelangor').value = p.anakSelangor.toString();
+      }
+
+      document.getElementById('modalBangsa').value = p.bangsa || 'Melayu';
+      document.getElementById('modalSekolahSemasa').value = p.sekolahSemasa || 'SRA KG CHERAS BARU';
+      document.getElementById('modalTahunAkademik').value = p.tahunAkademik || '2026';
+      document.getElementById('modalDarjah').value = p.darjah || 'DARJAH 1';
+      document.getElementById('modalKelas').value = p.kelas || '';
+      document.getElementById('modalStatusMurid').value = p.statusMurid || 'Aktif';
+      document.getElementById('modalTarikhMula').value = p.tarikhMula || '28/06/2026';
+
+      document.getElementById('modalKesihatan').value = p.kesihatan || '';
+      document.getElementById('modalAlergi').value = p.alergi || '';
+      document.getElementById('modalBantuan').value = p.bantuan || '';
+
+      document.getElementById('modalIbuBapa').value = p.ibuBapa || '';
+      document.getElementById('modalTelefon').value = p.telefon || '';
+      document.getElementById('modalHubungan').value = p.hubungan || '';
+      document.getElementById('modalAlamat').value = p.alamat || '';
+
+      document.getElementById('modalDisiplin').value = p.disiplin || '';
+      document.getElementById('modalCatatan').value = p.catatan || '';
+      
+      switchModalTab('maklumat', document.querySelector('.modal-sidebar-menu button'));
+      document.getElementById('editModalOverlay').classList.remove('hidden');
+    }
+
+    function tutupModalEdit() {
+      document.getElementById('editModalOverlay').classList.add('hidden');
+    }
+
+    function switchModalTab(tabName, btnElement) {
+      document.querySelectorAll('.modal-pane').forEach(pane => pane.classList.add('hidden'));
+      document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active-modal-tab'));
+
+      document.getElementById('modal-tab-' + tabName).classList.remove('hidden');
+      if(btnElement) btnElement.classList.add('active-modal-tab');
+    }
+
+    function simpanModalEdit() {
+      const index = parseInt(document.getElementById('modalEditIndex').value);
+      
+      dataPelajar[index].nama = document.getElementById('modalNama').value.trim().toUpperCase();
+      dataPelajar[index].noIc = document.getElementById('modalIc').value.trim();
+      dataPelajar[index].jantina = document.getElementById('modalJantina').value;
+      dataPelajar[index].tarikhLahir = document.getElementById('modalTarikhLahir').value.trim();
+      dataPelajar[index].tempatLahir = document.getElementById('modalTempatLahir').value.trim();
+      
+      dataPelajar[index].anakSelangor = document.getElementById('modalAnakSelangor').value === 'true';
+      dataPelajar[index].bangsa = document.getElementById('modalBangsa').value;
+
+      dataPelajar[index].sekolahSemasa = document.getElementById('modalSekolahSemasa').value.trim();
+      dataPelajar[index].tahunAkademik = document.getElementById('modalTahunAkademik').value.trim();
+      dataPelajar[index].darjah = document.getElementById('modalDarjah').value.trim().toUpperCase();
+      dataPelajar[index].kelas = document.getElementById('modalKelas').value.trim().toUpperCase();
+      dataPelajar[index].statusMurid = document.getElementById('modalStatusMurid').value;
+      dataPelajar[index].tarikhMula = document.getElementById('modalTarikhMula').value.trim();
+
+      dataPelajar[index].kesihatan = document.getElementById('modalKesihatan').value.trim();
+      dataPelajar[index].alergi = document.getElementById('modalAlergi').value.trim();
+      dataPelajar[index].bantuan = document.getElementById('modalBantuan').value.trim();
+
+      dataPelajar[index].ibuBapa = document.getElementById('modalIbuBapa').value.trim();
+      dataPelajar[index].telefon = document.getElementById('modalTelefon').value.trim();
+      dataPelajar[index].hubungan = document.getElementById('modalHubungan').value.trim();
+      dataPelajar[index].alamat = document.getElementById('modalAlamat').value.trim();
+
+      dataPelajar[index].disiplin = document.getElementById('modalDisiplin').value.trim();
+      dataPelajar[index].catatan = document.getElementById('modalCatatan').value.trim();
+
+      simpanKeLocalStorage();
+      paparSenaraiPelajar();
+      tutupModalEdit();
+      alert('Profil penuh pelajar berjaya dikemaskini!');
+    }
+
+    function padamPelajar(index) {
+      if (confirm(`Adakah Cikgu pasti untuk memadam rekod pelajar ${dataPelajar[index].nama}?`)) {
+        dataPelajar.splice(index, 1);
+        simpanKeLocalStorage();
+        paparSenaraiPelajar();
+        alert('Rekod pelajar berjaya dipadam.');
+      }
+    }
+
+    function muatSemulaLog() {
+      paparRekodKehadiran();
+      alert('Log kehadiran dimuat semula!');
+    }
+
+    function switchSubTab(subName) {
+      const subSenarai = document.getElementById('subview-senarai');
+      const subRekod = document.getElementById('subview-rekod');
+      const btnSenarai = document.getElementById('tab-senarai');
+      const btnRekod = document.getElementById('tab-rekod');
+
+      if (subName === 'senarai') {
+        subSenarai.classList.remove('hidden');
+        subRekod.classList.add('hidden');
+        btnSenarai.classList.add('active-sub');
+        btnRekod.classList.remove('active-sub');
+        paparSenaraiPelajar();
+      } else if (subName === 'rekod') {
+        subSenarai.classList.add('hidden');
+        subRekod.classList.remove('hidden');
+        btnRekod.classList.add('active-sub');
+        btnSenarai.classList.remove('active-sub');
+        paparRekodKehadiran();
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('collapsed');
+    }
+
+    function switchView(viewName) {
+      document.getElementById('view-home').classList.add('hidden');
+      document.getElementById('view-erpt').classList.add('hidden');
+      document.getElementById('view-erph').classList.add('hidden');
+      document.getElementById('view-murid').classList.add('hidden');
+
+      const menuItems = document.querySelectorAll('.sidebar-menu a');
+      menuItems.forEach(item => item.classList.remove('active'));
+
+      if (viewName === 'home') {
+        document.getElementById('view-home').classList.remove('hidden');
+        document.getElementById('nav-home').classList.add('active');
+      } else if (viewName === 'erpt') {
+        document.getElementById('view-erpt').classList.remove('hidden');
+        document.getElementById('nav-erpt').classList.add('active');
+      } else if (viewName === 'erph') {
+        document.getElementById('view-erph').classList.remove('hidden');
+        document.getElementById('nav-erph').classList.add('active');
+      } else if (viewName === 'murid') {
+        document.getElementById('view-murid').classList.remove('hidden');
+        document.getElementById('nav-murid').classList.add('active');
+        switchSubTab('senarai');
+      }
+    }
+
+    window.onload = function() {
+      paparSenaraiPelajar();
+      paparRekodKehadiran();
+    };
+  </script>
+</body>
 </html>
