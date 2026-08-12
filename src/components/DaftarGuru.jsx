@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { auth, db } from '../firebase'; // Memanggil firebase.js anda
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { useToast } from './Toast';
 
 export default function DaftarGuru() {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     nama: '',
     noKp: '',
@@ -41,12 +43,12 @@ export default function DaftarGuru() {
         created_at: new Date()
       });
 
-      alert("Pendaftaran Guru Berjaya!");
+      toast.success("Pendaftaran Guru Berjaya!");
       setFormData({ nama: '', noKp: '', gred: '', email: '', password: '' });
 
     } catch (error) {
       console.error("Ralat pendaftaran:", error);
-      alert("Gagal mendaftar: " + error.message);
+      toast.error("Gagal mendaftar: " + error.message);
     } finally {
       setLoading(false);
     }

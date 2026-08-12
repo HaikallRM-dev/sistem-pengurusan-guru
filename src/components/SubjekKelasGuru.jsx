@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useToast } from './Toast';
 
 export default function SubjekKelasGuru({ user }) {
+  const toast = useToast();
   const [senaraiSubjekKelas, setSenaraiSubjekKelas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,7 +55,7 @@ export default function SubjekKelasGuru({ user }) {
   const handleTambah = async (e) => {
     e.preventDefault();
     if (!subjek || !kelas) {
-      alert("Sila pilih subjek dan masukkan nama kelas.");
+      toast("Sila pilih subjek dan masukkan nama kelas.");
       return;
     }
 
@@ -75,10 +77,10 @@ export default function SubjekKelasGuru({ user }) {
       setSenaraiSubjekKelas(senaraiKemaskini);
       setSubjek('');
       setKelas('');
-      alert("Agihan subjek dan kelas berjaya ditambah!");
+      toast("Agihan subjek dan kelas berjaya ditambah!");
     } catch (error) {
       console.error("Ralat menyimpan:", error);
-      alert("Gagal menyimpan: " + error.message);
+      toast("Gagal menyimpan: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -97,10 +99,10 @@ export default function SubjekKelasGuru({ user }) {
       });
 
       setSenaraiSubjekKelas(senaraiKemaskini);
-      alert("Agihan berjaya dipadam!");
+      toast("Agihan berjaya dipadam!");
     } catch (error) {
       console.error("Ralat memadam:", error);
-      alert("Gagal memadam: " + error.message);
+      toast("Gagal memadam: " + error.message);
     }
   };
 

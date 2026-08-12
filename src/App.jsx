@@ -12,10 +12,15 @@ import JadualWaktuGuru from './components/JadualWaktuGuru';
 import Navbar from './components/Navbar';
 import PengumumanAktiviti from './components/PengumumanAktiviti';
 import DashboardGuru from './components/DashboardGuru';
+import { useToast } from './components/Toast';
+import { generateGuruPDF, generateGuruExcel } from './utils/laporan';
+import SenaraiGuru from './components/SenaraiGuru';
+import ErphPage from './components/ErphPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
   const [namaGuru, setNamaGuru] = useState('');
+  const [perananGuru, setPerananGuru] = useState('guru');
   const [loading, setLoading] = useState(true);
   
   // 🟢 State untuk Penapis & Indikator Muat Turun
@@ -25,6 +30,7 @@ export default function App() {
 
   const [authTab, setAuthTab] = useState('login');
   const [activeTab, setActiveTab] = useState('dashboard');
+  const toast = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -36,6 +42,7 @@ export default function App() {
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             setNamaGuru(docSnap.data().nama);
+            setPerananGuru(docSnap.data().peranan || 'guru');
           }
         } catch (err) {
           console.error("Ralat mengambil nama:", err);
@@ -50,13 +57,13 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // 🟢 Fungsi Muat Turun PDF
+  // 🟢 Fungsi Muat Turun PDF (client-side, data sebenar)
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
       const querySnapshot = await getDocs(collection(db, "guru"));
       let senaraiGuru = [];
-      
+
       querySnapshot.forEach((doc) => {
         const d = doc.data();
         senaraiGuru.push({
@@ -70,49 +77,18 @@ export default function App() {
         senaraiGuru = senaraiGuru.filter((guru) => guru.gred === penapisGred);
       }
 
-      const tajuk = penapisGred === 'SEMUA' 
-        ? "LAPORAN SENARAI KESELURUHAN GURU" 
-        : `LAPORAN SENARAI GURU (GRED ${penapisGred})`;
-
-      const tarikhHariIni = new Date().toLocaleDateString('ms-MY', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-
-      const payload = {
-        tajuk_laporan: tajuk,
-        tarikh: tarikhHariIni,
-        nama_sekolah: "SMK Sri Indah",
-        senarai_guru: senaraiGuru
-      };
-
-      const response = await fetch('http://localhost:5000/api/download-pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error("Gagal mengambil PDF");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Laporan_Guru_${penapisGred}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      await generateGuruPDF(senaraiGuru, penapisGred);
+      toast.success("PDF berjaya dijana");
 
     } catch (err) {
       console.error("Ralat muat turun PDF:", err);
-      alert("Gagal memuat turun PDF. Sila pastikan server berjalan.");
+      toast.error("Gagal memuat turun PDF: " + err.message);
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // 🟢 Fungsi Muat Turun Excel
+  // 🟢 Fungsi Muat Turun Excel (client-side, data sebenar)
   const handleDownloadExcel = async () => {
     setIsDownloadingExcel(true);
     try {
@@ -132,42 +108,12 @@ export default function App() {
         senaraiGuru = senaraiGuru.filter((guru) => guru.gred === penapisGred);
       }
 
-      const tajuk = penapisGred === 'SEMUA' 
-        ? "LAPORAN SENARAI KESELURUHAN GURU" 
-        : `LAPORAN SENARAI GURU (GRED ${penapisGred})`;
-
-      const tarikhHariIni = new Date().toLocaleDateString('ms-MY', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      });
-
-      const payload = {
-        tajuk_laporan: tajuk,
-        tarikh: tarikhHariIni,
-        senarai_guru: senaraiGuru
-      };
-
-      const response = await fetch('http://localhost:5000/api/download-excel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error("Gagal mengambil fail Excel");
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Laporan_Guru_${penapisGred}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      generateGuruExcel(senaraiGuru, penapisGred);
+      toast.success("Excel berjaya dijana");
 
     } catch (err) {
       console.error("Ralat muat turun Excel:", err);
-      alert("Gagal memuat turun fail Excel.");
+      toast.error("Gagal memuat turun fail Excel: " + err.message);
     } finally {
       setIsDownloadingExcel(false);
     }
@@ -187,7 +133,8 @@ export default function App() {
         <Navbar 
           activeTab={activeTab} 
           setActiveTab={setActiveTab} 
-          namaGuru={namaGuru} 
+          namaGuru={namaGuru}
+          peranan={perananGuru}
         />
 
         <main className="flex-1 p-4 sm:p-6 w-full max-w-7xl mx-auto">
@@ -250,6 +197,8 @@ export default function App() {
           {activeTab === 'kehadiran' && <KehadiranMurid user={user} />}
           {activeTab === 'jadual' && <JadualWaktuGuru user={user} />}
           {activeTab === 'pengumuman' && <PengumumanAktiviti user={user} />}
+          {activeTab === 'erph' && <ErphPage user={user} />}
+          {activeTab === 'pentadbir' && <SenaraiGuru user={user} />}
         </main>
       </div>
     );

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useToast } from './Toast';
 
 export default function JadualWaktuGuru({ user }) {
+  const toast = useToast();
   const [senaraiKelas, setSenaraiKelas] = useState([]);
   const [pilihKelas, setPilihKelas] = useState('');
   const [senaraiJadual, setSenaraiJadual] = useState([]);
@@ -78,7 +80,7 @@ export default function JadualWaktuGuru({ user }) {
     try {
       const docRef = doc(db, "guru", user.uid);
       await updateDoc(docRef, { namaSekolah });
-      alert("Nama sekolah berjaya disimpan!");
+      toast("Nama sekolah berjaya disimpan!");
     } catch (err) {
       console.error("Ralat menyimpan nama sekolah:", err);
     }
@@ -88,7 +90,7 @@ export default function JadualWaktuGuru({ user }) {
   const handleTambahJadual = async (e) => {
     e.preventDefault();
     if (!pilihKelas || !subjek || !masaMula || !masaTamat) {
-      alert("Sila lengkapkan maklumat jadual.");
+      toast("Sila lengkapkan maklumat jadual.");
       return;
     }
 
@@ -112,10 +114,10 @@ export default function JadualWaktuGuru({ user }) {
 
       setSenaraiJadual(senaraiKemaskini);
       setSubjek('');
-      alert("Slot jadual berjaya ditambah!");
+      toast("Slot jadual berjaya ditambah!");
     } catch (error) {
       console.error("Ralat menyimpan jadual:", error);
-      alert("Gagal menyimpan jadual: " + error.message);
+      toast("Gagal menyimpan jadual: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -134,10 +136,10 @@ export default function JadualWaktuGuru({ user }) {
       });
 
       setSenaraiJadual(senaraiKemaskini);
-      alert("Slot jadual berjaya dipadam!");
+      toast("Slot jadual berjaya dipadam!");
     } catch (error) {
       console.error("Ralat memadam jadual:", error);
-      alert("Gagal memadam: " + error.message);
+      toast("Gagal memadam: " + error.message);
     }
   };
 

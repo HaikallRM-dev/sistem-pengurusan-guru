@@ -1,16 +1,50 @@
-# React + Vite
+# e-Guru — Sistem Pengurusan Guru
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Sistem web untuk guru mengurus pengajaran & kehadiran: profil, subjek & kelas,
+kehadiran murid, jadual waktu, pengumuman, laporan (PDF/Excel), modul **ERPH**
+(e-RPH / Rancangan Pengajaran Harian), dan panel pentadbir.
 
-Currently, two official plugins are available:
+## Teknologi
+- **React 19 + Vite** (frontend)
+- **Firebase** — Firestore (database) + Firebase Auth (log masuk)
+- **Tailwind CSS** (styling)
+- **html2pdf.js** (jana PDF laporan, client-side)
+- **SheetJS (xlsx)** (jana Excel laporan & RPH, client-side)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Ciri
+| Modul | Keterangan |
+|-------|-----------|
+| Dashboard | Ringkasan kelas, slot hari ini, % kehadiran, carta analisis |
+| Profil | Kemaskini profil & tukar kata laluan |
+| Subjek & Kelas | Agihan subjek + kelas |
+| Kehadiran | Tanda Hadir / Tidak Hadir / Bersebab mengikut murid |
+| Jadual Waktu | Susun jadual + cetak PDF |
+| Pengumuman | Makluman & aktiviti sekolah |
+| **ERPH** | Muat naik PDF ERPH, pilih minggu → jana Excel laporan RPH |
+| Laporan | Export senarai guru ke PDF & Excel (filter gred) |
+| Pentadbir | (Admin sahaja) senarai semua guru |
 
-## React Compiler
+## Persediaan
+1. `npm install`
+2. Salin `.env.example` ke `.env` dan isi konfigurasi Firebase:
+   ```
+   VITE_FIREBASE_API_KEY=...
+   VITE_FIREBASE_AUTH_DOMAIN=...
+   VITE_FIREBASE_PROJECT_ID=...
+   VITE_FIREBASE_STORAGE_BUCKET=...
+   VITE_FIREBASE_MESSAGING_SENDER_ID=...
+   VITE_FIREBASE_APP_ID=...
+   ```
+   (Jika `.env` tiada, app guna nilai sandaran — sesuai untuk dev.)
+3. `npm run dev` (jalan frontend + tiada lagi perlu server lain untuk laporan).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Struktur Firestore
+- `guru/{uid}` → `{ nama, noKp, gred, email, peranan, subjekKelas[], jadualWaktu[] }`
+- `kehadiran/{uid}_{kelas}_{tarikh}` → `{ senaraiMurid[], statusKehadiran{} }`
+- `pengumuman/{id}` → `{ tajuk, kategori, tarikhAktiviti, kandungan, penulisId }`
+- `erph/{id}` → `{ guruId, minggu, tahun, namaFail, pdfBase64 }`
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Nota
+- Laporan PDF & Excel dijana **client-side** terus dari data Firebase
+  (tiada lagi kebergantungan pada `server.cjs` untuk muat turun).
+- Jadikan akaun `peranan: 'admin'` dalam Firestore untuk akses panel Pentadbir.

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { auth } from '../firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useToast } from './Toast';
 
 export default function LoginGuru() {
+  const toast = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -13,10 +15,10 @@ export default function LoginGuru() {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("Log Masuk Berjaya!");
+      toast.success("Log Masuk Berjaya!");
     } catch (error) {
       console.error("Ralat log masuk:", error);
-      alert("Gagal Log Masuk: Email atau kata laluan salah.");
+      toast.error("Gagal Log Masuk: Email atau kata laluan salah.");
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useToast } from './Toast';
 
 export default function KehadiranMurid({ user }) {
+  const toast = useToast();
   const [senaraiKelas, setSenaraiKelas] = useState([]);
   const [pilihKelas, setPilihKelas] = useState('');
   const [tarikh, setTarikh] = useState(new Date().toISOString().split('T')[0]);
@@ -51,7 +53,14 @@ export default function KehadiranMurid({ user }) {
 
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setSenaraiMurid(data.senaraiMurid || []);
+            // Backward-compatible: data lama simpan nama sebagai string
+            const rawList = data.senaraiMurid || [];
+            const converted = rawList.map((m) =>
+              typeof m === 'string'
+                ? { id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, nama: m }
+                : m
+            );
+            setSenaraiMurid(converted);
             setStatusKehadiran(data.statusKehadiran || {});
           } else {
             // Jika belum ada rekod pada tarikh ini, kekalkan senarai murid
@@ -70,37 +79,40 @@ export default function KehadiranMurid({ user }) {
     e.preventDefault();
     if (!namaMuridBaharu.trim()) return;
 
-    if (senaraiMurid.includes(namaMuridBaharu.trim())) {
-      alert("Nama murid ini sudah wujud dalam senarai.");
+    if (senaraiMurid.some((m) => m.nama === namaMuridBaharu.trim())) {
+      toast("Nama murid ini sudah wujud dalam senarai.");
       return;
     }
 
-    const namaDiisi = namaMuridBaharu.trim();
-    setSenaraiMurid([...senaraiMurid, namaDiisi]);
+    const muridBaharu = {
+      id: `m_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      nama: namaMuridBaharu.trim(),
+    };
+    setSenaraiMurid([...senaraiMurid, muridBaharu]);
     setStatusKehadiran(prev => ({
       ...prev,
-      [namaDiisi]: 'Hadir' // Default status
+      [muridBaharu.id]: 'Hadir' // Default status
     }));
     setNamaMuridBaharu('');
   };
 
-  // 4. Tukar status kehadiran murid
-  const handleTukarStatus = (nama, status) => {
+  // 4. Tukar status kehadiran murid (mengikut ID)
+  const handleTukarStatus = (id, status) => {
     setStatusKehadiran(prev => ({
       ...prev,
-      [nama]: status
+      [id]: status
     }));
   };
 
   // 5. Simpan rekod ke Firestore
   const handleSimpanKehadiran = async () => {
     if (!pilihKelas) {
-      alert("Sila pilih kelas terlebih dahulu.");
+      toast("Sila pilih kelas terlebih dahulu.");
       return;
     }
 
     if (senaraiMurid.length === 0) {
-      alert("Sila tambah sekurang-kurangnya seorang murid.");
+      toast("Sila tambah sekurang-kurangnya seorang murid.");
       return;
     }
 
@@ -118,10 +130,10 @@ export default function KehadiranMurid({ user }) {
         dikemaskiniPada: new Date().toISOString()
       });
 
-      alert("Rekod kehadiran berjaya disimpan!");
+      toast("Rekod kehadiran berjaya disimpan!");
     } catch (error) {
       console.error("Ralat menyimpan kehadiran:", error);
-      alert("Gagal menyimpan kehadiran: " + error.message);
+      toast("Gagal menyimpan kehadiran: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -199,15 +211,15 @@ export default function KehadiranMurid({ user }) {
               <span>Status Kehadiran</span>
             </div>
 
-            {senaraiMurid.map((nama, idx) => {
-              const statusSemasa = statusKehadiran[nama] || 'Hadir';
+            {senaraiMurid.map((m, idx) => {
+              const statusSemasa = statusKehadiran[m.id] || 'Hadir';
               return (
-                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <span className="font-semibold text-slate-800 text-sm">{idx + 1}. {nama}</span>
+                <div key={m.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <span className="font-semibold text-slate-800 text-sm">{idx + 1}. {m.nama}</span>
                   <div className="flex gap-1">
                     <button
                       type="button"
-                      onClick={() => handleTukarStatus(nama, 'Hadir')}
+                      onClick={() => handleTukarStatus(m.id, 'Hadir')}
                       className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
                         statusSemasa === 'Hadir'
                           ? 'bg-green-600 text-white'
@@ -218,7 +230,7 @@ export default function KehadiranMurid({ user }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleTukarStatus(nama, 'Tidak Hadir')}
+                      onClick={() => handleTukarStatus(m.id, 'Tidak Hadir')}
                       className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
                         statusSemasa === 'Tidak Hadir'
                           ? 'bg-red-600 text-white'
@@ -229,7 +241,7 @@ export default function KehadiranMurid({ user }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleTukarStatus(nama, 'Bersebab')}
+                      onClick={() => handleTukarStatus(m.id, 'Bersebab')}
                       className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
                         statusSemasa === 'Bersebab'
                           ? 'bg-amber-500 text-white'

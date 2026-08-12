@@ -7,8 +7,10 @@ import {
   reauthenticateWithCredential, 
   updatePassword 
 } from 'firebase/auth';
+import { useToast } from './Toast';
 
 export default function ProfilGuru({ user }) {
+  const toast = useToast();
   const [profil, setProfil] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -76,10 +78,10 @@ export default function ProfilGuru({ user }) {
 
       setProfil({ ...profil, ...editData });
       setIsEditing(false);
-      alert("Profil berjaya dikemaskini!");
+      toast("Profil berjaya dikemaskini!");
     } catch (error) {
       console.error("Ralat kemaskini:", error);
-      alert("Gagal kemaskini: " + error.message);
+      toast("Gagal kemaskini: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -90,12 +92,12 @@ export default function ProfilGuru({ user }) {
     e.preventDefault();
 
     if (passData.newPassword !== passData.confirmPassword) {
-      alert("Kata laluan baharu dan pengesahan kata laluan tidak padan!");
+      toast("Kata laluan baharu dan pengesahan kata laluan tidak padan!");
       return;
     }
 
     if (passData.newPassword.length < 6) {
-      alert("Kata laluan baharu mestilah sekurang-kurangnya 6 aksara.");
+      toast("Kata laluan baharu mestilah sekurang-kurangnya 6 aksara.");
       return;
     }
 
@@ -109,16 +111,16 @@ export default function ProfilGuru({ user }) {
       // Step B: Tukar kata laluan baharu
       await updatePassword(user, passData.newPassword);
 
-      alert("Kata laluan berjaya ditukar!");
+      toast("Kata laluan berjaya ditukar!");
       setIsChangingPass(false);
       setPassData({ currentPassword: '', newPassword: '', confirmPassword: '' });
 
     } catch (error) {
       console.error("Ralat tukar kata laluan:", error);
       if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        alert("Gagal: Kata laluan semasa anda tidak tepat.");
+        toast("Gagal: Kata laluan semasa anda tidak tepat.");
       } else {
-        alert("Gagal menukar kata laluan: " + error.message);
+        toast("Gagal menukar kata laluan: " + error.message);
       }
     } finally {
       setPassLoading(false);
