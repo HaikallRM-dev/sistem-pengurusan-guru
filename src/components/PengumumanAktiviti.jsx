@@ -9,7 +9,7 @@ import {
   query, 
   orderBy, 
   serverTimestamp 
-} from 'firebase/firestore';
+} from '../firebase';
 
 export default function PengumumanAktiviti({ user }) {
   const [senarai, setSenarai] = useState([]);

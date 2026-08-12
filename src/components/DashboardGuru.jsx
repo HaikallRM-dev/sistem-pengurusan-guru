@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from '../firebase';
 import CartaKehadiran from './CartaKehadiran'; // 1. Import komponen carta
 
 export default function DashboardGuru({ user, setActiveTab }) {

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from '../firebase';
 import { 
   signOut, 
   EmailAuthProvider, 
   reauthenticateWithCredential, 
   updatePassword 
-} from 'firebase/auth';
+} from '../firebase';
 import { useToast } from './Toast';
 
 export default function ProfilGuru({ user }) {

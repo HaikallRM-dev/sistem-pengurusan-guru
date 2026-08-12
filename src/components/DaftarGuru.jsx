@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { auth, db } from '../firebase'; // Memanggil firebase.js anda
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { createUserWithEmailAndPassword } from '../firebase';
+import { doc, setDoc } from '../firebase';
 import { useToast } from './Toast';
 
 export default function DaftarGuru() {

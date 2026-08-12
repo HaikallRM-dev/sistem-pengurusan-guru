@@ -1,4 +1,4 @@
-import { signOut } from 'firebase/auth';
+import { signOut } from '../firebase';
 import { auth } from '../firebase';
 import { useState } from 'react';
 import SettingsModal from './SettingsModal';

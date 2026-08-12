@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from '../firebase';
 import { useToast } from './Toast';
 
 export default function SenaraiGuru({ user }) {

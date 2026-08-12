@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth, db } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged } from './firebase';
+import { doc, getDoc, collection, getDocs } from './firebase';
 
 import DaftarGuru from './components/DaftarGuru';
 import LoginGuru from './components/LoginGuru';

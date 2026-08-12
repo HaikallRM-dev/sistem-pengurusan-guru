@@ -9,7 +9,7 @@ import { db } from '../firebase';
 import {
   collection, addDoc, getDocs, deleteDoc, doc,
   query, where, orderBy, serverTimestamp,
-} from 'firebase/firestore';
+} from '../firebase';
 import * as XLSX from 'xlsx';
 import { useToast } from './Toast';
 

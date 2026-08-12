@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from '../firebase';
 import { useToast } from './Toast';
 
 export default function JadualWaktuGuru({ user }) {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword } from '../firebase';
 import { useToast } from './Toast';
 
 export default function LoginGuru() {

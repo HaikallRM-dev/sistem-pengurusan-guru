@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from '../firebase';
 import { useToast } from './Toast';
 
 export default function KehadiranMurid({ user }) {
