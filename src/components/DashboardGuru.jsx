@@ -143,10 +143,6 @@ export default function DashboardGuru({ user, setActiveTab }) {
       </div>
 
       {/* Kad Statistik Ringkas */}
-      {/* Carta Visual Kehadiran */}
-<CartaKehadiran 
-  peratusKeseluruhan={statData.ringkasanKehadiran.peratus} 
-/>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         {/* Kad 0: Total Murid */}
