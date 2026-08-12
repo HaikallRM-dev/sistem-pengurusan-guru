@@ -9,6 +9,7 @@ export default function DashboardGuru({ user, setActiveTab }) {
   const [statData, setStatData] = useState({
     jumlahKelas: 0,
     jumlahSubjek: 0,
+    jumlahMurid: 0,
     jadualHariIni: [],
     ringkasanKehadiran: { total: 0, hadir: 0, tidakHadir: 0, bersebab: 0, peratus: 0 }
   });
@@ -73,9 +74,28 @@ export default function DashboardGuru({ user, setActiveTab }) {
 
         const peratus = totalMurid > 0 ? Math.round((totalHadir / totalMurid) * 100) : 0;
 
+        // 3. Kira TOTAL MURID (setiap kelas, ambil rekod terbaharu)
+        const qSemua = query(
+          collection(db, "kehadiran"),
+          where("guruId", "==", user.uid)
+        );
+        const snapSemua = await getDocs(qSemua);
+        const muridPerKelas = {}; // kelas -> bilangan murid maksimum
+        snapSemua.forEach((docSnap) => {
+          const data = docSnap.data();
+          const kelas = data.kelas;
+          const bil = (data.senaraiMurid || []).length;
+          if (!kelas) return;
+          if (!(kelas in muridPerKelas) || bil > muridPerKelas[kelas]) {
+            muridPerKelas[kelas] = bil;
+          }
+        });
+        const totalMuridSemua = Object.values(muridPerKelas).reduce((a, b) => a + b, 0);
+
         setStatData({
           jumlahKelas: kelasUnik.length,
           jumlahSubjek: subjekUnik.length,
+          jumlahMurid: totalMuridSemua,
           jadualHariIni: jadualHariIniList,
           ringkasanKehadiran: {
             total: totalMurid,
@@ -128,9 +148,21 @@ export default function DashboardGuru({ user, setActiveTab }) {
   peratusKeseluruhan={statData.ringkasanKehadiran.peratus} 
 />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
+        {/* Kad 0: Total Murid */}
+        <div className="card flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Jumlah Murid</p>
+            <h3 className="text-2xl font-black text-brand-700 dark:text-brand-300 mt-1">{statData.jumlahMurid} Murid</h3>
+            <p className="text-[11px] text-slate-400 mt-0.5">Semua kelas anda</p>
+          </div>
+          <div className="w-12 h-12 rounded-xl bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 flex items-center justify-center text-xl font-bold">
+            👥
+          </div>
+        </div>
+
         {/* Kad 1: Kelas & Subjek */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div className="card flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500">Agihan Kelas</p>
             <h3 className="text-2xl font-black text-slate-800 mt-1">{statData.jumlahKelas} Kelas</h3>
@@ -142,7 +174,7 @@ export default function DashboardGuru({ user, setActiveTab }) {
         </div>
 
         {/* Kad 2: Slot Kelas Hari Ini */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div className="card flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500">Jadual Hari Ini ({hariIni})</p>
             <h3 className="text-2xl font-black text-slate-800 mt-1">{statData.jadualHariIni.length} Kelas</h3>
@@ -154,7 +186,7 @@ export default function DashboardGuru({ user, setActiveTab }) {
         </div>
 
         {/* Kad 3: Peratus Kehadiran */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div className="card flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500">Kehadiran Hari Ini</p>
             <h3 className="text-2xl font-black text-emerald-600 mt-1">{statData.ringkasanKehadiran.peratus}%</h3>
@@ -166,7 +198,7 @@ export default function DashboardGuru({ user, setActiveTab }) {
         </div>
 
         {/* Kad 4: Murid Tidak Hadir */}
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center justify-between">
+        <div className="card flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500">Tidak Hadir / Bersebab</p>
             <h3 className="text-2xl font-black text-rose-600 mt-1">
@@ -190,9 +222,9 @@ export default function DashboardGuru({ user, setActiveTab }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Senarai Kelas Hari Ini (2 Lajur) */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+        <div className="lg:col-span-2 card p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="font-bold text-slate-800 text-base">Jadual Mengajar Hari Ini ({hariIni})</h2>
+            <h2 className="font-bold text-slate-800 dark:text-white text-base">Jadual Mengajar Hari Ini ({hariIni})</h2>
             <button
               onClick={() => setActiveTab('jadual')}
               className="text-xs font-semibold text-blue-600 hover:text-blue-700"
@@ -226,8 +258,8 @@ export default function DashboardGuru({ user, setActiveTab }) {
         </div>
 
         {/* Pautan Pantas & Akses Penting (1 Lajur) */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-          <h2 className="font-bold text-slate-800 text-base">Pautan Pantas</h2>
+        <div className="card p-6 space-y-4">
+          <h2 className="font-bold text-slate-800 dark:text-white text-base">Pautan Pantas</h2>
           
           <div className="space-y-2.5">
             <button
